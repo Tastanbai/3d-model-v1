@@ -7,44 +7,45 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     html,body{margin:0;height:100%;background:#111;color:#eee;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    header{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;padding:10px;background:#1b1b1b;border-bottom:1px solid #2a2a2a;z-index:10}
+    button{padding:8px 12px;border:0;border-radius:6px;background:#3a6df0;color:#fff;cursor:pointer}
     model-viewer{width:100%;height:100vh}
-    .overlay{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;
-             background:linear-gradient(#111,#0f0f0f);font-size:14px}
-    .bar{width:60%;max-width:520px;height:8px;background:#333;border-radius:4px;overflow:hidden}
-    .bar>i{display:block;height:100%;width:0%;background:#5aa3ff;transition:width .2s}
-    .err{color:#ff6b6b}
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);z-index:9}
+    .spin{width:36px;height:36px;border-radius:50%;border:4px solid #444;border-top-color:#7fb3ff;animation:sp 1s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-  <div class="overlay" id="ov">
-    <div>Загрузка модели… <span id="pct">0%</span></div>
-    <div class="bar"><i id="bar"></i></div>
-    <div id="msg" style="opacity:.7">Файл ~118 MB, подождите.</div>
-  </div>
+  <header>
+    <div>Режим: <b id="mode">Лёгкий</b></div>
+    <button id="btnHQ">Высокое качество (118 MB)</button>
+  </header>
+
+  <div class="overlay" id="ov"><div class="spin"></div></div>
 
   <model-viewer id="mv"
-    src="https://github.com/Tastanbai/3d-model-v1/releases/download/v1.0/100.glb"
-    camera-controls auto-rotate
-    crossorigin="anonymous"
-    poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect width='100%' height='100%' fill='%23111'/><text x='50%' y='50%' fill='%23aaa' text-anchor='middle' font-family='sans-serif' font-size='24'>Загрузка 3D…</text></svg>">
+    src="model.glb"             <!-- < 100 MB, лежит в репозитории -->
+    camera-controls auto-rotate>
   </model-viewer>
 
   <script>
-    const mv=document.getElementById('mv'), ov=document.getElementById('ov'),
-          bar=document.getElementById('bar'), pct=document.getElementById('pct'), msg=document.getElementById('msg');
+    const mv = document.getElementById('mv');
+    const ov = document.getElementById('ov');
+    const mode = document.getElementById('mode');
+    const btnHQ = document.getElementById('btnHQ');
+    const BIG = "https://github.com/Tastanbai/3d-model-v1/releases/download/v1.0/100.glb";
 
-    mv.addEventListener('progress', e=>{
-      const p=Math.round((e.detail.totalProgress||0)*100);
-      bar.style.width=p+'%'; pct.textContent=p+'%';
-      if(p>=100){ ov.style.display='none'; }
+    btnHQ.addEventListener('click', () => {
+      ov.style.display='flex';
+      mode.textContent = 'Высокое качество';
+      mv.setAttribute('crossorigin','anonymous');
+      mv.src = BIG; // переключаемся на 118MB с Releases
     });
 
-    mv.addEventListener('load', ()=>{ ov.style.display='none'; });
-
-    mv.addEventListener('error', e=>{
-      ov.style.display='flex';
-      msg.className='err';
-      msg.textContent='Ошибка загрузки: ' + (e.message || 'проверьте ссылку и CORS');
+    mv.addEventListener('load', () => { ov.style.display='none'; });
+    mv.addEventListener('error', e => {
+      ov.style.display='none';
+      alert('Ошибка загрузки: ' + (e.message || 'проверьте ссылку и CORS'));
     });
   </script>
 </body>
