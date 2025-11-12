@@ -1,22 +1,51 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>3D Preview</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <style>
-      html, body { margin:0; height:100%; background:#111; }
-      model-viewer { width:100%; height:100vh; }
-    </style>
-  </head>
-  <body>
-    <model-viewer
-      src="https://github.com/Tastanbai/3d-model-v1/releases/download/v1.0/100.glb"
-      camera-controls
-      auto-rotate
-      crossorigin="anonymous"
-      ar>
-    </model-viewer>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D Preview</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    html,body{margin:0;height:100%;background:#111;color:#eee;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    model-viewer{width:100%;height:100vh}
+    .overlay{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;
+             background:linear-gradient(#111,#0f0f0f);font-size:14px}
+    .bar{width:60%;max-width:520px;height:8px;background:#333;border-radius:4px;overflow:hidden}
+    .bar>i{display:block;height:100%;width:0%;background:#5aa3ff;transition:width .2s}
+    .err{color:#ff6b6b}
+  </style>
+</head>
+<body>
+  <div class="overlay" id="ov">
+    <div>Загрузка модели… <span id="pct">0%</span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="msg" style="opacity:.7">Файл ~118 MB, подождите.</div>
+  </div>
+
+  <model-viewer id="mv"
+    src="https://github.com/Tastanbai/3d-model-v1/releases/download/v1.0/100.glb"
+    camera-controls auto-rotate
+    crossorigin="anonymous"
+    poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect width='100%' height='100%' fill='%23111'/><text x='50%' y='50%' fill='%23aaa' text-anchor='middle' font-family='sans-serif' font-size='24'>Загрузка 3D…</text></svg>">
+  </model-viewer>
+
+  <script>
+    const mv=document.getElementById('mv'), ov=document.getElementById('ov'),
+          bar=document.getElementById('bar'), pct=document.getElementById('pct'), msg=document.getElementById('msg');
+
+    mv.addEventListener('progress', e=>{
+      const p=Math.round((e.detail.totalProgress||0)*100);
+      bar.style.width=p+'%'; pct.textContent=p+'%';
+      if(p>=100){ ov.style.display='none'; }
+    });
+
+    mv.addEventListener('load', ()=>{ ov.style.display='none'; });
+
+    mv.addEventListener('error', e=>{
+      ov.style.display='flex';
+      msg.className='err';
+      msg.textContent='Ошибка загрузки: ' + (e.message || 'проверьте ссылку и CORS');
+    });
+  </script>
+</body>
 </html>
